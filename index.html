@@ -1,0 +1,269 @@
+<title>SET Desk Note — Watchlist</title>
+<style>
+  :root{
+    --bg:#10151b; --surface:#161d25; --surface2:#1b232d; --hair:#26303a;
+    --ink:#e6edf3; --muted:#8b98a6; --faint:#5c6873;
+    --blue:#6fb3f2; --green:#52c77e; --red:#e5534b; --amber:#e2ab4d;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  html{background:var(--bg)}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55;margin:0;padding:0 0 64px}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 20px}
+  a{color:var(--blue)}
+
+  header{border-bottom:1px solid var(--hair);padding:26px 0 18px;margin-bottom:18px}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin:0 0 6px}
+  h1{font-family:var(--mono);font-size:26px;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance}
+  .stamp{color:var(--muted);font-size:12.5px;margin-top:6px}
+  .stamp b{color:var(--ink);font-weight:600}
+
+  .tape{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 4px}
+  .chip{background:var(--surface);border:1px solid var(--hair);border-radius:6px;padding:7px 12px;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;display:flex;gap:8px;align-items:baseline}
+  .chip .sym{color:var(--muted);font-size:11px;letter-spacing:.06em}
+  .up{color:var(--green)} .dn{color:var(--red)} .flat{color:var(--muted)}
+
+  h2{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--hair);padding-bottom:8px;margin:34px 0 14px}
+
+  .brief{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+  .panel{background:var(--surface);border:1px solid var(--hair);border-radius:8px;padding:16px 18px}
+  .panel h3{margin:0 0 8px;font-size:13.5px;font-weight:650}
+  .panel h3 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;vertical-align:1px}
+  .panel p{margin:0 0 8px;color:#c3ccd6;font-size:13.5px;max-width:62ch}
+  .panel p:last-child{margin-bottom:0}
+  .panel p b{color:var(--ink)}
+
+  .playbook{display:flex;flex-direction:column;gap:8px}
+  .play{display:grid;grid-template-columns:34px 110px 1fr auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--hair);border-radius:8px;padding:10px 14px}
+  .play .rank{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--faint)}
+  .play .tk{font-family:var(--mono);font-weight:700}
+  .play .why{color:var(--muted);font-size:12.5px}
+  .play .rr{font-family:var(--mono);font-size:12px;color:var(--amber);white-space:nowrap;font-variant-numeric:tabular-nums}
+  @media(max-width:640px){.play{grid-template-columns:26px 1fr auto}.play .why{grid-column:1/-1}}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:8px;padding:14px 16px 12px;display:flex;flex-direction:column;gap:10px}
+  .card .head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .card .tk{font-family:var(--mono);font-size:15.5px;font-weight:700}
+  .card .nm{color:var(--faint);font-size:11.5px;margin-top:1px}
+  .card .px{font-family:var(--mono);font-size:15.5px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+  .badge{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:4px;padding:3px 7px;white-space:nowrap}
+  .b-long{background:rgba(82,199,126,.14);color:var(--green);border:1px solid rgba(82,199,126,.35)}
+  .b-watch{background:rgba(111,179,242,.12);color:var(--blue);border:1px solid rgba(111,179,242,.35)}
+  .b-hot{background:rgba(226,171,77,.14);color:var(--amber);border:1px solid rgba(226,171,77,.4)}
+  .b-avoid{background:rgba(229,83,75,.13);color:var(--red);border:1px solid rgba(229,83,75,.4)}
+  .b-neut{background:rgba(139,152,166,.12);color:var(--muted);border:1px solid var(--hair)}
+  .spark{position:relative}
+  .spark canvas{display:block;width:100%;height:110px;cursor:crosshair}
+  .tip{position:absolute;top:2px;left:2px;font-family:var(--mono);font-size:10.5px;color:var(--muted);background:rgba(16,21,27,.85);padding:1px 6px;border-radius:3px;pointer-events:none;display:none;font-variant-numeric:tabular-nums}
+  .ladder{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums}
+  .ladder td{padding:3px 0;border-top:1px solid var(--hair)}
+  .ladder td:first-child{color:var(--muted);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+  .ladder td:last-child{text-align:right;font-weight:600}
+  .lv-t{color:var(--amber)} .lv-e{color:var(--blue)} .lv-s{color:var(--green)} .lv-x{color:var(--red)}
+  .card .note{color:var(--muted);font-size:12px;margin:0}
+  .rrline{font-family:var(--mono);font-size:11px;color:var(--faint);display:flex;justify-content:space-between}
+  .rrline b{color:var(--amber);font-weight:600}
+
+  footer{margin-top:40px;border-top:1px solid var(--hair);padding-top:14px;color:var(--faint);font-size:12px;max-width:90ch}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="kicker">Desk Note · Watchlist Refresh</p>
+  <h1>SET / DR Book — Levels, Entries, Cut-Loss</h1>
+  <p class="stamp">Snapshot <b>Mon 27 Jul 2026, 16:53 BKK — SET closed, these are Monday's settles</b> · auto-refresh at SET open/close · this is the <b>close run</b>, so breaks count · <b>one level was taken: DELTA closed 285, through the 290 support, and its ladder has been redrawn</b> · US cash shut until tonight, so US figures remain Friday settles</p>
+  <div class="tape">
+    <span class="chip"><span class="sym">SET</span>1,624.47 <span class="dn">-0.48% close · gave back the 1,650 fight</span></span>
+    <span class="chip"><span class="sym">S&amp;P 500</span>7,412 <span class="up">+0.05% Fri settle · closed green</span></span>
+    <span class="chip"><span class="sym">NDX</span>28,128 <span class="dn">-1.15% Fri settle</span></span>
+    <span class="chip"><span class="sym">MU</span>$921 <span class="dn">-7.0% Fri settle</span></span>
+    <span class="chip"><span class="sym">WTI</span>$82.31 <span class="dn">-9.0% · the unwind accelerated</span></span>
+    <span class="chip"><span class="sym">GOLD</span>$4,098 <span class="up">+1.1% · bid all through crude's slide</span></span>
+    <span class="chip"><span class="sym">THB</span>33.57 <span class="flat">baht firm, drift small</span></span>
+  </div>
+</header>
+
+<h2>Macro &amp; Geopolitical Read</h2>
+<div class="brief">
+  <div class="panel">
+    <h3><span class="dot" style="background:var(--amber)"></span>The unwind accelerated into the close — WTI gave back nine percent</h3>
+    <p>The morning's fade turned into a rout. WTI settled <b>$90.46</b> Friday and closed the Asian/European day at <b>$82.31, -9.0%</b>, low $82.24 — that is $11 off Thursday's $93.50 high in two sessions, and the entire geopolitical premium this book was positioned around is now out of the price. Gold did the mirror image and held it: <b>$4,098, +1.1%</b>, high $4,116, bid the whole way down in crude. That pairing held for a full session, which makes it a rotation rather than a wobble. Baht at <b>33.57</b>, essentially unchanged from the morning.</p>
+    <p>Playbook: <b>OIL03 closed 3.58, -1.1% on the day's second mark</b> and <b>-6.8% versus Friday's 3.84 settle</b>, low 3.54. It is out of the 3.72–3.84 zone and two hundredths under the 3.60 support — but the <b>3.50 cut-loss survived</b>, so the ladder is left exactly as drawn. That is deliberate: 3.58 against 3.60 is not a decisive break, and the level that ends the trade is 3.50, which held. PTT was the surprise — it opened 39.00 on the morning mark and <b>closed 39.25, +0.6%</b>, refusing to follow a 9% crude move down. The divergence that looked spent at 10:20 is back on, from the constructive side this time.</p>
+  </div>
+  <div class="panel">
+    <h3><span class="dot" style="background:var(--red)"></span>DELTA is a stop-out — the only level taken this session</h3>
+    <p>The morning warned that 290 was all that stood underneath. It did not stand. <b>DELTA closed 285, -2.4% on the day's second mark and -7.2% versus Friday's 307</b>, opening 294, never trading above 295, and closing on the low of the day on <b>28.2m units — more than double Friday's volume</b>. That is a close decisively through the 290 support and precisely on the old 285 cut-loss, which makes it a stop-out rather than a dip, exactly as the morning note framed the test. <b>Its five lines have been redrawn and the BOOK ladder updated</b>: re-accumulation 274–280, support 271, hard cut 265, with 290 now flipped to resistance and 305 the objective. The old 297–300 zone is gone.</p>
+    <p>The rest of the book faded rather than broke. <b>AOT gave back the morning's gains</b> — high 65.00, but closed 63.75, <b>-1.2% from the 10:20 mark</b> and back under the 64.25 gate, so the gate is still un-taken on a close. <b>ADVANC printed 370 intraday, two baht through its 372 stop, then closed 373</b> — a wick, not a break, and the level survives another session by three baht. <b>CK round-tripped from 18.70 to close 18.10, -2.7%</b>, right back on the support it bounced off in the morning. SET itself closed <b>1,624.47, -0.48%</b>, low 1,622.64 — softer than the morning read but still 24 points clear of 1,600.</p>
+  </div>
+</div>
+
+<h2>The Playbook — ranked for a heavy-risk book</h2>
+<div class="playbook" id="playbook"></div>
+
+<h2>Watchlist — levels on every chart</h2>
+<div class="grid" id="grid"></div>
+
+<footer>
+  <p><b>Close run — these are settles:</b> the SET session ended at 16:30 BKK and every Thai mark on this page is Monday's close, so breaks count. One level was taken: <b>DELTA closed 285, decisively through its 290 support</b>, and its five chart lines were cleared and redrawn (target 305, resistance 290, entry 280, support 271, cut-loss 265) with the BOOK ladder updated to match. Everything else was deliberately left alone — <b>ADVANC wicked to 370, two baht through its 372 stop, but closed 373</b>; <b>OIL03 closed 3.58, just under the 3.60 support but above the 3.50 cut-loss</b>; <b>NDX01 closed AT 25.00, not under it</b>. A wick is not a break and a hair is not decisive. <b>DR caveat:</b> "…01/03/06/19" tickers are SET depositary receipts on foreign underlyings — THB/USD drift plus roll/tracking error on top. GOLD19 is the live example: spot gold +1.1% today, the DR -0.8%. <b>Feed caveat — worsening:</b> five names quote from the lagging SET_DLY feed and still have <b>no Monday bar</b>; MICRON01, META01, NVDA01, ASML01 and SPOT06 all show Friday, now a full session and a half stale. Four of those Friday closes were revised <i>again</i> this run (MICRON01 19.70→19.90, META01 5.95→6.00, ASML01 50.25→50.75, SPOT06 2.02→2.00), the second consecutive revision on the same bar for three of them, so treat those prints as provisional. NVDA01 alone re-verified unchanged at 20.70. <b>Risk note:</b> cut-loss levels are hard exits, not suggestions. This is technical/desk commentary, not investment advice. Data: TradingView Desktop, Mon 27 Jul 2026 16:53 BKK; US figures are Friday 24 Jul settles — US cash is shut until tonight. Alerts: <b>no new fires this session.</b> AOT 61.50 last fired Fri 24 Jul 11:42 BKK — spent, and with price 63.75 it should be re-armed at the 60.25 stop. MICRON01 17.60 last fired Fri 17 Jul, unchanged. PTT 35.75 has still never fired and is now 3.50 behind price — retire it. On the Basic-plan cap of 3, the best set is now AOT 60.25, ADVANC 372 (the live one), and DELTA 271 at the new support.</p>
+</footer>
+</div>
+
+<script>
+const C = {blue:'#6fb3f2',green:'#52c77e',red:'#e5534b',amber:'#e2ab4d',ink:'#e6edf3',faint:'#5c6873'};
+
+// entry:[lo,hi], stop = cut loss, r1 = trigger/resistance, tgt = target
+const BOOK = [
+ {t:'PTT',n:'PTT PCL · energy',last:39.25,chg:'+0.64%',v:['HELD THE ZONE','b-long'],
+  entry:[38.50,39.00],stop:37.60,s1:38.00,r1:40.00,tgt:41.50,dp:2,
+  note:'The morning read was wrong and the close says so. It traded down to 38.50 — the exact floor of the entry zone — and then bought back all day to close 39.25, +0.6% on the session mark and only -0.6% against Friday, on a day WTI fell 9%. That is the divergence reasserting itself with far better evidence than last week: refusing to follow crude UP is a story, refusing to follow it down $8 is a bid. The zone did its job as a zone. Levels untouched — 37.60 still defines it, 40.00 is still the gate. Disaster alert 35.75 has now never fired in two weeks and sits 3.50 behind price — retire it.',
+  px:[36.25,36.25,36.5,36.75,36.75,36.5,36.25,36.25,36.5,36,35,35.25,35.25,35.5,35.25,35.75,35,35,34.5,35,35.25,35.5,35.75,35.75,37,37.25,36.5,36.75,37,37.5,37.75,38.25,38.5,38.75,38.75,39,39.25,39.5,39.25]},
+ {t:'AOT',n:'Airports of Thailand',last:63.75,chg:'-1.16%',v:['GATE HELD','b-watch'],
+  entry:[62.25,63.00],stop:60.25,s1:61.50,r1:64.25,tgt:66.00,dp:2,
+  note:'The gate was tested properly and it held — against the buyer. High 65.00, a full 0.75 through the 64.25 trigger, then sold all afternoon to close 63.75, -1.2% off the morning mark and back underneath. That is a failed intraday break, which is a worse outcome than never getting there: it means supply is sitting at 64.25 in size. Still the right side of the trade — closed +0.4% on Friday and above the 62.25–63.00 zone — but the recovery thesis needs a CLOSE over 64.25 and has now been denied it once. Ladder untouched. The 61.50 alert is spent; re-arm at 60.25.',
+  px:[55,55.25,56.25,58.5,58,57.25,56.5,56.5,55.75,58,59,60,59.75,59.5,59.75,59.5,58,60.75,61.5,62.25,63.25,64.25,64.75,64,64.25,64.25,64.25,62.5,63,63.5,64,63,63.5,64.25,64,63.5,64,63.5,63.75]},
+ {t:'OIL03',n:'S&P Crude Oil ER DR',last:3.58,chg:'-1.10%',v:['ON THE CUT-LOSS','b-avoid'],
+  entry:[3.72,3.84],stop:3.50,s1:3.60,r1:3.96,tgt:4.20,dp:2,
+  note:'Friday\'s rebuild is now clearly premature. Closed 3.58, low 3.54 — -1.1% from the morning mark and -6.8% against Friday\'s 3.84 settle, with WTI going $90.46 to $82.31. It is out of the 3.72–3.84 zone and two hundredths under the 3.60 support. Levels are deliberately NOT redrawn: 3.58 against 3.60 is a hair, not a decisive break, and the level that ends this trade is 3.50, which survived by four hundredths. Read it honestly — banking part of the +9% week was right, the remainder has given it all back, and ER roll decay has been billing the whole time. A close under 3.50 ends the rebuilt trade outright, and it is one bad session away.',
+  px:[3.68,3.5,3.6,3.78,3.72,3.86,3.66,3.62,3.68,3.5,3.22,3.2,3.1,3.06,3.22,3.16,3.1,3.08,2.98,3.04,3.02,2.98,2.94,2.9,2.9,2.92,2.94,3.26,3.14,3.08,3.18,3.38,3.38,3.36,3.4,3.56,3.52,3.84,3.58]},
+ {t:'MICRON01',n:'Micron DR · memory',last:19.90,chg:'+1.02%',v:['STALE FEED','b-long'],
+  entry:[18.30,18.60],stop:17.30,s1:17.90,r1:19.50,tgt:20.50,dp:2,
+  note:'A second feed revision in the same direction: Friday\'s settled bar now reads 19.90, up from the 19.70 this book carried at 10:20 and the 19.20 it carried Friday. The +1.0% is that correction, not trade — there is STILL no Monday bar, so this feed is now a full session and a half behind the live board. Two consecutive upward revisions is worth flagging as a data-quality problem, not as strength. Structure unchanged: 19.90 sits above the 19.50 gate, well clear of the 17.30 stop, 20.50 target already banked at the 21.00 print. MU settled $920.95 (-7.0%) and US cash is shut until tonight, so expect this to open soft whenever it finally prints.',
+  px:[19.2,18.6,19.5,20.9,21,19.7,18.5,20.4,18.4,18.9,20.2,21.5,22.9,21.5,22.2,23,24.1,23.1,22.8,25.5,24,23.8,23.7,23.2,21.2,21,20.8,19.2,18.5,20.6,20.2,19.3,19.5,20.6,18.5,17.3,18.3,18.6,19.9]},
+ {t:'META01',n:'Meta DR',last:6.00,chg:'+0.84%',v:['CUT-LOSS BROKEN','b-avoid'],
+  entry:[5.70,5.85],stop:5.40,s1:5.55,r1:6.25,tgt:6.60,dp:2,
+  note:'Another lagging-feed correction, not a move: Friday\'s settled bar reads 6.00, not the 5.95 carried this morning — high 6.05, low 5.90, on 49,514 units. Still no Monday bar. The history stands: two consecutive closes through the 6.35 cut-loss took the long out, 6.25 broke with it, and the failed 6.60 breakout completed a round trip into the old 5.90 base. 6.00 is inside that base, above the 5.70–5.85 re-accumulation zone rather than in it, so there is nothing to do. Rebuilt ladder is a base trade against a hard 5.40, and 6.25 must be reclaimed on a close before 6.60 is alive again. Fills will be poor. No urgency.',
+  px:[5.85,6.1,6.1,5.85,5.9,6,5.8,5.75,5.7,5.6,5.55,5.5,5.65,5.75,5.55,5.55,5.6,5.45,5.55,5.45,5.35,5.5,5.55,5.5,6.05,5.75,5.8,5.9,6,6,6.25,6.5,6.45,6.55,6.75,6.4,6.4,6.4,6]},
+ {t:'NVDA01',n:'NVIDIA DR',last:20.70,chg:'0.00%',v:['ON THE TRIGGER','b-watch'],
+  entry:[19.60,20.00],stop:18.40,s1:18.70,r1:20.70,tgt:22.70,dp:2,
+  note:'Genuinely unchanged, and this one re-verified cleanly against the settled data at 20.70 — no revision, unlike MICRON01, META01, ASML01 and SPOT06, all of which moved on re-check. Friday: open 20.50, high 20.90, low 20.40, close 20.70, identical to Thursday\'s close on nearly double the volume. Still no Monday bar. That is a second consecutive session pinned on the 20.70 trigger with volume building underneath it — a real coil, not a stale quote, and it held while MICRON01\'s underlying fell 7%. Levels unchanged; 18.40 defines the trade, and a close through 20.70 is the add.',
+  px:[20.6,20.3,20.7,21.9,20.6,20.7,20,20.2,19.6,19.7,19.8,20.1,20.2,20,19.9,20.1,20.2,19.7,19.9,19.7,18.9,19.1,19,19.6,19.3,19,19.2,19,19,20,19.9,20.4,20.1,20.8,20.7,20,20.1,20.3,20.7]},
+ {t:'CNTECH01',n:'China Tech DR',last:25.75,chg:'+0.98%',v:['ZONE TOP','b-watch'],
+  entry:[25.25,25.75],stop:24.20,s1:24.80,r1:26.50,tgt:27.25,dp:2,
+  note:'Woke up, quietly. Closed 25.75, +1.0%, high 26.00, on 25,978 units against the 1,120 that traded by mid-morning — so the whole session\'s volume came after the open, and it closed at the top of the 25.25–25.75 zone on a day when the SET fell and DELTA was stopped out. That is the second-best relative performance on the book. It is still capped by 26.50 and still range-bound after three weeks, so this is a nudge rather than a signal. Nothing to do until 26.50 goes on a close or 24.20 fails.',
+  px:[26,26,27.25,26.5,26,25.25,25.5,25.25,24.8,25.25,25,24.7,24.9,24.5,24.7,24.6,23.7,24.4,24,23.2,23.9,24.3,24.4,24.3,24.3,24.6,24.5,25.5,25.75,25.75,25.75,25.75,25.75,26.5,25.25,26,26,25.5,25.75]},
+ {t:'HK01',n:'Hang Seng DR',last:22.00,chg:'0.00%',v:['AT THE GATE','b-long'],
+  entry:[21.30,21.50],stop:20.40,s1:20.90,r1:22.00,tgt:22.60,dp:2,
+  note:'The volume finally showed up and the level still did not break. Closed exactly 22.00 for the second session, high 22.10 — the first trade above the gate in four attempts — on <b>51,035 units against the 964 that had traded by mid-morning and 4,576 all of Friday</b>. That is an eleven-fold volume expansion into the level, which is what the previous note said was missing, and it still could not close over it. Two readings are available: distribution at 22.00, or accumulation ahead of a break. The tiebreaker is the close, and the close was AT the gate, not through it. Strongest relative chart on the book — the only name to finish green against Friday while SET fell. Comfortably above 20.40. Wait for the close over 22.00.',
+  px:[21,21.2,21.8,21.4,21.1,21,21.1,20.7,20.7,21,20.9,20.8,20.7,20.1,20.4,20.4,20,20.4,20,19.8,19.9,19.7,19.8,20,20.3,20.3,20.4,20.9,20.9,21,20.9,21.1,21.5,22,21.4,22,21.9,21.9,22]},
+ {t:'ASML01',n:'ASML DR',last:50.75,chg:'+1.00%',v:['ABOVE THE ZONE','b-long'],
+  entry:[47.75,49.25],stop:46.75,s1:47.50,r1:51.75,tgt:55.00,dp:2,
+  note:'Revised up a second time: Friday settled 50.75, not the 50.25 carried this morning or the 49.75 carried Friday — high 50.75, low 49.25, on 204,611 units, its heaviest in weeks. Like MICRON01, two consecutive upward revisions on the same bar, so treat the precision with suspicion even though the direction is consistent. The relative-strength case is now the strongest on the book: MU settled -7.0%, MICRON01 is soft, and this closed UP and at its high. Still no Monday bar. It is clear of the 47.75–49.25 zone rather than in it, so no fresh entry here — risk stays defined at 46.75, and the breakout needs a CLOSE over 51.75, now just one baht away.',
+  px:[44.75,44.75,44.25,44.75,45,46,46,45.5,48.25,47.5,49.25,51.25,52.25,51.25,51.5,52.5,51.75,53,49.75,50,51,49.75,50.25,52.5,55,50.75,51.5,51,48.75,47.75,49.75,49.75,49.25,48.75,49.5,50,49.25,50,50.75]},
+ {t:'ADVANC',n:'Advanced Info Service',last:373,chg:'-0.27%',v:['STOP TESTED','b-watch'],
+  entry:[380,383],stop:372,s1:377,r1:390,tgt:400,dp:0,
+  note:'The stop was breached intraday and survived the close. Low 370 — two baht through the 372 cut-loss and the deepest test yet — then bought back to close 373, the second session running that 372 has been probed and defended. Levels are deliberately NOT redrawn: a wick through a line is not a break, and the rule on this page is that only a CLOSE counts. But be clear about the arithmetic — this is now one baht above the exit, the fourth straight close under the 380 trigger, and the 353–383 advance is behaving like a completed range. No adds under 380. The next 372 close ends it, and the odds of that are no longer small.',
+  px:[353,353,364,360,361,358,359,354,359,366,360,358,358,358,357,361,358,353,353,352,357,367,363,368,375,373,376,375,378,373,376,382,374,375,379,381,383,376,373]},
+ {t:'CK',n:'CH. Karnchang',last:18.10,chg:'-2.69%',v:['ON SUPPORT','b-watch'],
+  entry:[19.00,19.40],stop:17.60,s1:18.10,r1:19.00,tgt:20.00,dp:2,
+  note:'A complete round trip and the worst reversal on the book. The morning bounce carried to 18.70 and then gave every tick of it back to close 18.10 — -2.7% from the morning mark, on the low, on 13.4m units against Friday\'s 9.1m. So the support held on price and failed on character: closing at the exact low of the day on rising volume is distribution into a level, not defence of one. 18.10 is still 0.50 above the 17.60 stop and 19.00 has now rejected it three times. Rules unchanged — no fresh longs until a 19.00 close, dead under 17.60 — but this is the name most likely to be there next.',
+  px:[17.8,18,19.6,19.1,18.9,18.1,18.3,17.9,17.8,18.8,19.5,19.1,19.6,19.5,20.2,20,19.3,19.7,19.6,19.7,19.7,19.6,19.4,19.2,19.5,19.5,19.4,18.7,19.8,19.8,19.4,18.6,18.6,18.3,18.5,18.6,18.9,18.3,18.1]},
+ {t:'SP50001',n:'S&P 500 DR',last:25.50,chg:'0.00%',v:['ZONE TOP','b-long'],
+  entry:[25.25,25.50],stop:24.70,s1:25.00,r1:26.00,tgt:26.25,dp:2,
+  note:'Held the morning\'s gain to the bell — closed 25.50, unchanged on the session mark and +1.0% against Friday\'s 25.25, having tagged 25.75 intraday on 92,371 units versus Friday\'s 43,774. Bought off the zone floor exactly as the ladder intended and then defended, which is the cleanest execution on the book this session. The underlying supports it: SPX settled 7,411.98 Friday, +0.05%, a green close, while NDX settled -1.15%. That divergence is the whole position — the S&P is fine, the Nasdaq is not, and this DR tracks the one that is. Compare NDX01 below, same structure, opposite outcome. 26.00 remains the gate, 24.70 the exit.',
+  px:[24.9,25.25,25.25,25,25,24.5,24.8,24.6,24.4,24.6,24.9,24.9,24.8,24.7,24.7,25,24.9,24.8,25,24.8,25,25.25,25.25,25.5,25.25,25,25.5,25.25,25.25,25.5,25.25,25.25,25.75,25.75,25.25,25.5,25.75,25.25,25.5]},
+ {t:'NDX01',n:'Nasdaq 100 DR',last:25.00,chg:'0.00%',v:['FLOOR GIVING','b-avoid'],
+  entry:[25.25,25.50],stop:24.40,s1:24.80,r1:26.25,tgt:27.25,dp:2,
+  note:'Closed 25.00 — AT the line the previous note named, not under it, so by its own stated test the range break is still unconfirmed. The session recovered to 25.50 intraday before fading back, low 24.90, on 166,418 units against Friday\'s 599,428: a quarter of the volume, which reads as sellers finished rather than sellers pressing. It is below the 25.25 zone floor that held for six sessions and above the 24.80 support — no-man\'s land, and a second session of it. Levels stand: nothing closed through the support or the 24.40 stop. A close UNDER 25.00 is still the confirmation, and NDX settling -1.15% at 28,128 is still the driver. No new risk here.',
+  px:[25.5,25.75,26,25.75,25.75,25.25,25.25,24.9,24.8,25.5,25.75,26,26,25.75,25.75,26,25.25,25.75,25.75,25.5,25.25,25.75,26.25,26.25,25.75,25.5,26,25.25,25.75,26,25.75,25.5,26,26,25.25,25.25,25.25,25.25,25]},
+ {t:'GOLD19',n:'Gold DR',last:12.60,chg:'-0.79%',v:['TRACKING GAP','b-watch'],
+  entry:[12.40,12.60],stop:11.90,s1:12.10,r1:12.80,tgt:13.30,dp:2,
+  note:'The tracking gap is the story, and it is not a good one. Spot gold closed $4,098, +1.1%, high $4,116 — it went UP all session while crude fell 9%, exactly the pairing this position exists to capture. The DR closed 12.60, DOWN 0.8% from the morning mark, having touched 12.70 and faded. So on the single best day for the underlying in weeks, the instrument gave ground. That is the month-long tracking drag showing up at the worst possible moment, and it is the reason to size this small or not at all. Closed at the zone top, still 0.20 short of the 12.80 trigger it failed at Thursday. 12.80 on a CLOSE is the only thing that changes the case; 11.90 is the exit.',
+  px:[13.3,13.5,13.6,13.5,13.5,13,13.2,12.7,12.3,12.7,13,13,12.8,12.7,12.5,12.8,12.6,12.4,12.4,12.4,12.4,12.3,12.1,12.4,12.7,12.6,12.5,12.5,12.7,12.6,12.6,12.5,12.5,12.4,12.5,12.5,12.4,12.5,12.6]},
+ {t:'SPOT06',n:'Spotify DR',last:2.00,chg:'-0.99%',v:['ILLIQUID','b-neut'],
+  entry:[1.95,2.02],stop:1.84,s1:1.90,r1:2.08,tgt:2.16,dp:2,
+  note:'Revised down a second time: Friday settled 2.00, not the 2.02 carried this morning or the 2.04 carried Friday. So it finished INSIDE the 1.95–2.02 zone, not on its top, and the 2.08 trigger was never close. The volume spike got bigger on re-check, though — 51,126 units against the 26k first reported, on a bar that opened 2.02 and closed 2.00. Heavy volume with a lower close is distribution, which flips the read on that spike from constructive to cautionary. No Monday bar on this feed. Higher lows off 1.84 are intact and it is still far too thin to size properly. Watch 2.08, do not chase.',
+  px:[2.14,2.1,2.08,2.02,1.98,2,2,2.06,2.02,2.08,1.99,1.97,1.96,1.93,1.88,1.9,1.92,1.9,1.91,1.89,1.84,1.93,1.94,1.93,1.95,1.98,1.97,2.02,2.04,2.04,2,1.99,2.02,2.02,2.04,1.97,2,2,2]},
+ {t:'DELTA',n:'Delta Electronics TH',last:285,chg:'-2.40%',v:['STOPPED OUT','b-avoid'],
+  entry:[274,280],stop:265,s1:271,r1:290,tgt:305,dp:0,
+  note:'Stopped out — the only level taken on the book this session, and the ladder has been redrawn on the chart to match. Opened 294, never traded above 295, and closed 285 on the low of the day: a close decisively through the 290 support and precisely on the old 285 cut-loss, on 28.2m units, more than double Friday\'s 13.3m. The two-session reclaim of 300 was a failed breakout, and -7.2% against Friday\'s 307 is what a failed breakout costs. The morning note said "if 290 goes on the close, this is a stop-out, not a dip" — it went. New ladder is built below and deliberately patient: re-accumulation only 274–280, support 271, hard cut 265, with 290 now flipped from support to the first resistance that must be reclaimed on a close, and 305 the objective. 285 sits in no-man\'s land between the new zone and that resistance, which is the honest place for it. No re-entry here — this closed on its low, and there is no chart support until the new zone.',
+  px:[353,353,355,356,343,338,364,352,358,363,361,352,347,346,334,335,317,314,326,304,325,325,325,312,315,319,311,298,310,313,313,311,312,304,300,294,295,307,285]},
+ {t:'SET',n:'SET Index · context',last:1624.47,chg:'-0.48%',v:['BULL TREND','b-long'],
+  entry:[1600,1610],stop:1575,s1:1600,r1:1650,tgt:1680,dp:0,
+  note:'Closed 1,624.47, -1.21% against Friday and -0.48% from the morning mark, opening 1,633.33 and grinding to a 1,622.64 low before a small bounce into the bell. After four sessions of failing at 1,650 the index has now walked away from the gate, which is the less constructive read, and closing near the low of the day does not improve it. But keep the scale honest: 1,600 is still 24 points below, the trend and the book\'s master switch are both intact, and this remains a pullback inside an uptrend rather than a break. Internals stayed inverted all session — DELTA stopped out, CK and OIL03 reversing, while HK01, SP50001 and CNTECH01 held green. Levels unchanged.',
+  px:[1569,1568.4,1588.1,1594.8,1582.6,1561.7,1584.1,1563.6,1572.3,1592.4,1591.7,1588.1,1587.1,1585.1,1572.5,1574.1,1540.9,1548.2,1558.6,1542.3,1577.8,1591.2,1588.2,1593.6,1611.3,1616.9,1604.1,1576.3,1608.3,1621.6,1627.9,1626,1630.2,1635.3,1639,1636.4,1646,1644.4,1624.47]},
+];
+
+const fmt=(x,dp)=>x.toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp});
+const rr=d=>{const mid=(d.entry[0]+d.entry[1])/2;return((d.tgt-mid)/(mid-d.stop));};
+
+// Playbook (top conviction, ranked)
+const plays=[
+ ['PTT','Closed 39.25, +0.6%, after tagging the 38.50 zone floor — refused to follow a 9% crude break down. Divergence back on, risk 37.60.'],
+ ['SP50001','Only clean execution today: bought the 25.25 floor, closed 25.50 on 2x volume. SPX green, NDX not. Risk 24.70.'],
+ ['HK01','Closed 22.00 again but on 51k units vs 4.6k Friday — the volume finally came and the gate still held. Close over 22.00 is the trade.'],
+ ['ASML01','Friday revised up to 50.75, at its high, on a day MU fell 7%. One baht under the 51.75 trigger. Risk 46.75.'],
+ ['NVDA01','Second session pinned exactly on the 20.70 trigger, volume building, and the only DR that did NOT get revised. Genuine coil. Risk 18.40.'],
+];
+const pbEl=document.getElementById('playbook');
+plays.forEach((p,i)=>{
+ const d=BOOK.find(b=>b.t===p[0]);
+ const row=document.createElement('div');row.className='play';
+ row.innerHTML=`<span class="rank">${i+1}</span><span class="tk">${d.t}</span><span class="why">${p[1]}</span>
+   <span class="rr">E ${fmt(d.entry[0],d.dp)}–${fmt(d.entry[1],d.dp)} · X ${fmt(d.stop,d.dp)} · T ${fmt(d.tgt,d.dp)} · R:R ${rr(d).toFixed(1)}</span>`;
+ pbEl.appendChild(row);
+});
+
+// Cards
+const grid=document.getElementById('grid');
+BOOK.forEach(d=>{
+ const card=document.createElement('div');card.className='card';
+ const chg=d.chg==='—'?'<span class="flat">—</span>':(d.chg.startsWith('+')?`<span class="up">${d.chg}</span>`:(d.chg.startsWith('-')?`<span class="dn">${d.chg}</span>`:`<span class="flat">${d.chg}</span>`));
+ card.innerHTML=`
+  <div class="head">
+    <div><div class="tk">${d.t}</div><div class="nm">${d.n}</div></div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+      <span class="badge ${d.v[1]}">${d.v[0]}</span>
+      <div class="px">${fmt(d.last,d.dp)} ${chg}</div>
+    </div>
+  </div>
+  <div class="spark"><canvas></canvas><span class="tip"></span></div>
+  <table class="ladder">
+    <tr><td>Target</td><td class="lv-t">${fmt(d.tgt,d.dp)}</td></tr>
+    <tr><td>Resistance / trigger</td><td class="lv-t">${fmt(d.r1,d.dp)}</td></tr>
+    <tr><td>Entry zone</td><td class="lv-e">${fmt(d.entry[0],d.dp)} – ${fmt(d.entry[1],d.dp)}</td></tr>
+    <tr><td>Support</td><td class="lv-s">${fmt(d.s1,d.dp)}</td></tr>
+    <tr><td>Cut loss</td><td class="lv-x">${fmt(d.stop,d.dp)}</td></tr>
+  </table>
+  <div class="rrline"><span>risk ${(100*((d.entry[0]+d.entry[1])/2-d.stop)/((d.entry[0]+d.entry[1])/2)).toFixed(1)}% to stop</span><span>R:R to target <b>${rr(d).toFixed(1)} : 1</b></span></div>
+  <p class="note">${d.note}</p>`;
+ grid.appendChild(card);
+ drawSpark(card.querySelector('canvas'),card.querySelector('.tip'),d);
+});
+
+function drawSpark(cv,tip,d){
+ const dpr=window.devicePixelRatio||1;
+ const W=cv.clientWidth||300,H=110;
+ cv.width=W*dpr;cv.height=H*dpr;
+ const g=cv.getContext('2d');g.scale(dpr,dpr);
+ const px=d.px;
+ const lvls=[d.stop,d.r1,d.entry[0],d.entry[1]];
+ const lo=Math.min(...px,...lvls)*0.998, hi=Math.max(...px,...lvls)*1.002;
+ const X=i=>6+(W-12)*i/(px.length-1);
+ const Y=v=>6+(H-12)*(1-(v-lo)/(hi-lo));
+ // entry band
+ g.fillStyle='rgba(111,179,242,.10)';
+ g.fillRect(6,Y(d.entry[1]),W-12,Math.max(2,Y(d.entry[0])-Y(d.entry[1])));
+ // level lines
+ const line=(v,col)=>{g.strokeStyle=col;g.lineWidth=1;g.setLineDash([3,3]);g.beginPath();g.moveTo(6,Y(v));g.lineTo(W-6,Y(v));g.stroke();g.setLineDash([]);};
+ line(d.r1,'rgba(226,171,77,.55)');
+ line(d.stop,'rgba(229,83,75,.6)');
+ // price area + line
+ g.beginPath();px.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v)));
+ g.strokeStyle=C.ink;g.lineWidth=1.6;g.stroke();
+ g.lineTo(X(px.length-1),H-2);g.lineTo(X(0),H-2);g.closePath();
+ g.fillStyle='rgba(230,237,243,.05)';g.fill();
+ // endpoint
+ g.beginPath();g.arc(X(px.length-1),Y(px[px.length-1]),3,0,7);
+ g.fillStyle=px[px.length-1]>=px[0]?C.green:C.red;g.fill();
+ g.strokeStyle='#161d25';g.lineWidth=2;g.stroke();
+ // hover
+ cv.addEventListener('mousemove',e=>{
+  const r=cv.getBoundingClientRect();
+  const i=Math.max(0,Math.min(px.length-1,Math.round((e.clientX-r.left-6)/((W-12)/(px.length-1)))));
+  tip.style.display='block';
+  tip.textContent=`bar ${i-px.length+1} · ${fmt(px[i],d.dp)}`;
+ });
+ cv.addEventListener('mouseleave',()=>tip.style.display='none');
+}
+</script>
